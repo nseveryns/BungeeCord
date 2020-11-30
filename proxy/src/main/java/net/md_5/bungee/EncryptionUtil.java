@@ -7,6 +7,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Random;
@@ -28,6 +29,8 @@ public class EncryptionUtil
 {
 
     private static final Random random = new Random();
+    @Getter
+    private static final SecureRandom secureRandom = new SecureRandom();
     public static final KeyPair keys;
     @Getter
     private static final SecretKey secret = new SecretKeySpec( new byte[ 16 ], "AES" );
@@ -53,6 +56,22 @@ public class EncryptionUtil
         byte[] verify = new byte[ 4 ];
         random.nextBytes( verify );
         return new EncryptionRequest( hash, pubKey, verify );
+    }
+
+    public static EncryptionResponse encryptResponse(EncryptionRequest request, byte[] randomSecret)
+    {
+        try
+        {
+            PublicKey pubkey = getPubkey( request );
+            Cipher cipher = Cipher.getInstance( "RSA" );
+            cipher.init( Cipher.ENCRYPT_MODE, pubkey );
+            byte[] encrypted = cipher.doFinal( request.getVerifyToken() );
+            return new EncryptionResponse( cipher.doFinal( randomSecret ), encrypted );
+        } catch ( GeneralSecurityException e )
+        {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static SecretKey getSecret(EncryptionResponse resp, EncryptionRequest request) throws GeneralSecurityException

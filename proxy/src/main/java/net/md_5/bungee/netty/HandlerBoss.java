@@ -80,6 +80,8 @@ public class HandlerBoss extends ChannelInboundHandlerAdapter
     {
         if ( msg instanceof HAProxyMessage )
         {
+            System.out.println( "NOW" + msg.toString() );
+            System.exit( 0 );
             HAProxyMessage proxy = (HAProxyMessage) msg;
             InetSocketAddress newAddress = new InetSocketAddress( proxy.sourceAddress(), proxy.sourcePort() );
 
